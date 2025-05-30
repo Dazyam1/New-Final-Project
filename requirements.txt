@@ -1,0 +1,14 @@
+joblib==1.4.2
+numpy==1.26.4
+pandas==2.2.2
+scikit-learn==1.6.1
+matplotlib==3.9.2
+streamlit==1.45.1
+requests==2.31.0
+protobuf==4.25.3
+PyYAML==6.0.1
+pillow==10.2.0
+plotly==5.22.0
+scipy==1.13.1
+seaborn==0.13.2
+threadpoolctl==3.5.0
