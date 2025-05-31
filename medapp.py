@@ -18,29 +18,31 @@ st.markdown("""
 # Load models using joblib
 @st.cache_resource
 def load_models():
-    try:
-        hepatitis_model = joblib.load("hepatitis_model.pkl")
-    except Exception as e:
-        hepatitis_model = None
-        st.error(f"Error loading hepatitis model: {e}")
+    models = {}
 
     try:
-        hiv_model = joblib.load("hiv_model.pkl")
-        vectorizer = joblib.load("vectorizer.pkl")
+        models["hepatitis"] = joblib.load("models/hepatitis_model.pkl")
     except Exception as e:
-        hiv_model = vectorizer = None
-        st.error(f"Error loading HIV model/vectorizer: {e}")
+        models["hepatitis"] = None
+        st.error(f"⚠️ Error loading Hepatitis model: {e}")
 
     try:
-        tb_model = joblib.load("tb_predictor_model.pkl")
+        models["hiv"] = joblib.load("models/hiv_model.pkl")
+        models["vectorizer"] = joblib.load("models/vectorizer.pkl")
     except Exception as e:
-        tb_model = None
-        st.error(f"Error loading TB model: {e}")
+        models["hiv"] = models["vectorizer"] = None
+        st.error(f"⚠️ Error loading HIV model/vectorizer: {e}")
 
-    return hepatitis_model, hiv_model, vectorizer, tb_model
+    try:
+        models["tb"] = joblib.load("models/tb_predictor_model.pkl")
+    except Exception as e:
+        models["tb"] = None
+        st.error(f"⚠️ Error loading TB model: {e}")
+
+    return models
 
 # Load all models once
-hepatitis_model, hiv_model, vectorizer, tb_model = load_models()
+models = load_models()
 
 # Sidebar
 with st.sidebar:
@@ -61,11 +63,11 @@ st.markdown("""
 def map_bool(val): return {'False': 0, 'True': 1, 'Unknown': -1}[val]
 def map_sex(val): return 0 if val == "male" else 1
 
-# Hepatitis
+# Hepatitis Model
 if choice == "Hepatitis":
     st.header("🫀 Hepatitis Prognosis")
-    if hepatitis_model is None:
-        st.error("Model not found.")
+    if models["hepatitis"] is None:
+        st.error("⚠️ Hepatitis model not found.")
     else:
         with st.form("hep_form"):
             col1, col2 = st.columns(2)
@@ -99,17 +101,17 @@ if choice == "Hepatitis":
                     map_bool(varices), map_bool(histology), bilirubin, alk_phos,
                     sgot, albumin, protime
                 ]
-                pred = hepatitis_model.predict([features])[0]
+                pred = models["hepatitis"].predict([features])[0]
                 if pred == 1:
                     st.success("✅ Favorable Prognosis")
                 else:
                     st.error("⚠️ Concerning Prognosis")
 
-# HIV
+# HIV Model
 elif choice == "HIV":
     st.header("🧪 HIV Risk Assessment")
-    if hiv_model is None or vectorizer is None:
-        st.error("Model or vectorizer not found.")
+    if models["hiv"] is None or models["vectorizer"] is None:
+        st.error("⚠️ Model or vectorizer not found.")
     else:
         symptoms = [
             "Fever", "Night Sweats", "Fatigue", "Weight Loss", "Diarrhea", "Skin Lesions",
@@ -119,22 +121,22 @@ elif choice == "HIV":
 
         if st.button("Assess Risk"):
             if not selected:
-                st.warning("Please select symptoms")
+                st.warning("⚠️ Please select symptoms")
             else:
-                vec = vectorizer.transform([", ".join(selected)])
-                pred = hiv_model.predict(vec)[0]
-                prob = hiv_model.predict_proba(vec)[0][pred]
+                vec = models["vectorizer"].transform([", ".join(selected)])
+                pred = models["hiv"].predict(vec)[0]
+                prob = models["hiv"].predict_proba(vec)[0][pred]
 
                 if pred == 1:
                     st.error(f"🚨 High Risk (Confidence: {prob:.2%})")
                 else:
                     st.success(f"✅ Low Risk (Confidence: {prob:.2%})")
 
-# TB
+# TB Model
 elif choice == "Tuberculosis":
     st.header("🫁 Tuberculosis Screening")
-    if tb_model is None:
-        st.error("TB model not found.")
+    if models["tb"] is None:
+        st.error("⚠️ TB model not found.")
     else:
         tb_symptoms = [
             "Fever", "Cough", "Night Sweats", "Weight Loss", "Chest Pain", 
@@ -146,8 +148,8 @@ elif choice == "Tuberculosis":
             tb_data.append(1 if val == "Present" else 0)
 
         if st.button("Run TB Screening"):
-            pred = tb_model.predict([tb_data])[0]
-            prob = tb_model.predict_proba([tb_data])[0][pred]
+            pred = models["tb"].predict([tb_data])[0]
+            prob = models["tb"].predict_proba([tb_data])[0][pred]
             if pred == 1:
                 st.error(f"🚨 High TB Risk (Confidence: {prob:.2%})")
             else:
