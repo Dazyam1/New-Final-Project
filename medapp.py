@@ -21,20 +21,20 @@ def load_models():
     models = {}
 
     try:
-        models["hepatitis"] = joblib.load("models/hepatitis_model.pkl")
+        models["hepatitis"] = joblib.load("hepatitis_model.pkl")
     except Exception as e:
         models["hepatitis"] = None
         st.error(f"⚠️ Error loading Hepatitis model: {e}")
 
     try:
-        models["hiv"] = joblib.load("models/hiv_model.pkl")
-        models["vectorizer"] = joblib.load("models/vectorizer.pkl")
+        models["hiv"] = joblib.load("hiv_model.pkl")
+        models["vectorizer"] = joblib.load("vectorizer.pkl")
     except Exception as e:
         models["hiv"] = models["vectorizer"] = None
         st.error(f"⚠️ Error loading HIV model/vectorizer: {e}")
 
     try:
-        models["tb"] = joblib.load("models/tb_predictor_model.pkl")
+        models["tb"] = joblib.load("tb_predictor_model.pkl")
     except Exception as e:
         models["tb"] = None
         st.error(f"⚠️ Error loading TB model: {e}")
